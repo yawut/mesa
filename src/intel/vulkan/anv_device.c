@@ -45,7 +45,7 @@
 #include "genxml/gen7_pack.h"
 
 static void
-compiler_debug_log(void *data, const char *fmt, ...)
+compiler_debug_log(void *data, GLuint *id, const char *fmt, ...)
 { }
 
 static void
