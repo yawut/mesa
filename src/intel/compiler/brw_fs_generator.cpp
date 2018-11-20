@@ -2471,7 +2471,7 @@ fs_generator::generate_code(const cfg_t *cfg, int dispatch_width)
               spill_count, fill_count, promoted_constants, before_size, after_size,
               100.0f * (before_size - after_size) / before_size);
 
-      dump_assembly(p->store, disasm_info);
+      dump_assembly(stderr, p->store, disasm_info);
    }
    ralloc_free(disasm_info);
    assert(validated);
