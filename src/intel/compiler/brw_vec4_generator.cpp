@@ -2195,30 +2195,34 @@ generate_code(struct brw_codegen *p,
    brw_compact_instructions(p, 0, disasm_info);
    int after_size = p->next_insn_offset;
 
+   char *buf;
+   size_t buf_size;
+   FILE * log_fp = open_memstream(&buf, &buf_size);
    if (unlikely(debug_flag)) {
-      fprintf(stderr, "Native code for %s %s shader %s:\n",
+      fprintf(log_fp, "Native code for %s %s shader %s:\n",
               nir->info.label ? nir->info.label : "unnamed",
               _mesa_shader_stage_to_string(nir->info.stage), nir->info.name);
+   }
 
-      fprintf(stderr, "%s vec4 shader: %d instructions. %d loops. %u cycles. %d:%d "
+   fprintf(log_fp, "%s vec4 shader: %d instructions. %d loops. %u cycles. %d:%d "
                       "spills:fills. Compacted %d to %d bytes (%.0f%%)\n",
               stage_abbrev, before_size / 16, loop_count, cfg->cycle_count,
               spill_count, fill_count, before_size, after_size,
               100.0f * (before_size - after_size) / before_size);
 
-      dump_assembly(stderr, p->store, disasm_info);
+   if (unlikely(debug_flag)) {
+      dump_assembly(log_fp, p->store, disasm_info);
+      fflush(log_fp);
+      fputs(buf, stderr);
    }
    ralloc_free(disasm_info);
    assert(validated);
 
+   fclose(log_fp);
    static GLuint msg_id = 0;
    compiler->shader_debug_log(log_data, &msg_id,
-                              "%s vec4 shader: %d inst, %d loops, %u cycles, "
-                              "%d:%d spills:fills, compacted %d to %d bytes.",
-                              stage_abbrev, before_size / 16,
-                              loop_count, cfg->cycle_count, spill_count,
-                              fill_count, before_size, after_size);
-
+                              "%s", buf);
+   free(buf);
 }
 
 extern "C" const unsigned *

@@ -2463,30 +2463,27 @@ fs_generator::generate_code(const cfg_t *cfg, int dispatch_width)
    brw_compact_instructions(p, start_offset, disasm_info);
    int after_size = p->next_insn_offset - start_offset;
 
+   char *buf;
+   size_t buf_size;
+   FILE * log_fp = open_memstream(&buf, &buf_size);
+   fprintf(log_fp, "Native code for %s\n"
+           "SIMD%d shader: %d instructions. %d loops. %u cycles. %d:%d spills:fills. Promoted %u constants. Compacted %d to %d"
+           " bytes (%.0f%%)\n",
+           shader_name, dispatch_width, before_size / 16, loop_count, cfg->cycle_count,
+           spill_count, fill_count, promoted_constants, before_size, after_size,
+           100.0f * (before_size - after_size) / before_size);
    if (unlikely(debug_flag)) {
-      fprintf(stderr, "Native code for %s\n"
-              "SIMD%d shader: %d instructions. %d loops. %u cycles. %d:%d spills:fills. Promoted %u constants. Compacted %d to %d"
-              " bytes (%.0f%%)\n",
-              shader_name, dispatch_width, before_size / 16, loop_count, cfg->cycle_count,
-              spill_count, fill_count, promoted_constants, before_size, after_size,
-              100.0f * (before_size - after_size) / before_size);
-
-      dump_assembly(stderr, p->store, disasm_info);
+      dump_assembly(log_fp, p->store, disasm_info);
+      fflush(log_fp);
+      fputs(buf, stderr);
    }
    ralloc_free(disasm_info);
    assert(validated);
 
    static GLuint msg_id = 0;
-   compiler->shader_debug_log(log_data, &msg_id,
-                              "%s SIMD%d shader: %d inst, %d loops, %u cycles, "
-                              "%d:%d spills:fills, Promoted %u constants, "
-                              "compacted %d to %d bytes.",
-                              _mesa_shader_stage_to_abbrev(stage),
-                              dispatch_width, before_size / 16,
-                              loop_count, cfg->cycle_count, spill_count,
-                              fill_count, promoted_constants, before_size,
-                              after_size);
-
+   compiler->shader_debug_log(log_data, &msg_id, "%s", buf);
+   fclose(log_fp);
+   free(buf);
    return start_offset;
 }
 
