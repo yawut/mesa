@@ -231,6 +231,7 @@ _mesa_gl_vdebug(struct gl_context *ctx,
    _mesa_debug_get_id(id);
 
    len = _mesa_vsnprintf(s, MAX_DEBUG_MESSAGE_LENGTH, fmtString, args);
+   assert(len <= MAX_DEBUG_MESSAGE_LENGTH);
 
    _mesa_log_msg(ctx, source, type, *id, severity, len, s);
 }
