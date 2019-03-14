@@ -1288,13 +1288,13 @@ do_single_blorp_clear(struct brw_context *brw, struct gl_framebuffer *fb,
          brw_meta_convert_fast_clear_color(brw, irb->mt,
                                            &ctx->Color.ClearColor);
 
-      intel_miptree_set_clear_color(brw, irb->mt, clear_color);
-
-      /* If the buffer is already in ISL_AUX_STATE_CLEAR, the clear
-       * is redundant and can be skipped.
+      /* If the buffer is already in ISL_AUX_STATE_CLEAR and the clear color
+       * hasn't changed, the clear is redundant and can be skipped.
        */
-      if (aux_state == ISL_AUX_STATE_CLEAR)
+      if (!(intel_miptree_set_clear_color(brw, irb->mt, clear_color)) &&
+          (aux_state == ISL_AUX_STATE_CLEAR)) {
          return;
+      }
 
       DBG("%s (fast) to mt %p level %d layers %d+%d\n", __FUNCTION__,
           irb->mt, irb->mt_level, irb->mt_layer, num_layers);
