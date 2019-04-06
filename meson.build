@@ -918,7 +918,7 @@ if cc.compiles('''#include <stdint.h>
                            (int)__atomic_add_fetch(x.v, (uint64_t)1, __ATOMIC_ACQ_REL);
 
                   }''',
-               name : 'GCC atomic builtins')
+               name : 'GCC atomic builtins') and host_machine.system() != 'cafe'
   pre_args += '-DUSE_GCC_ATOMIC_BUILTINS'
 
   # Not all atomic calls can be turned into lock-free instructions, in which
